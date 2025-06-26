@@ -297,8 +297,6 @@ Raw: 0.159m, Filtered: 0.159m, Gain: 0.083
 
 ## Troubleshooting
 
-## Troubleshooting
-
 ### PlatformIO Issues
 
 1. **Build errors with micro-ROS**:
@@ -429,9 +427,6 @@ ros2 run micro_ros_agent micro_ros_agent serial --dev /dev/ttyUSB0 -b 115200
 ```
 
 ## Configuration Notes
-
-## Configuration Notes
-
 ### Important RViz2 Configuration
 
 ⚠️ **Critical**: Change the Fixed Frame in RViz2 from "map" to **"ultrasonic_filtered"** to properly visualize the sensor data.
