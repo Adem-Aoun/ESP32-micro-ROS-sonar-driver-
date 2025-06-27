@@ -116,7 +116,7 @@ lib_deps =
 
 2. **Create new project**:
    ```bash
-   pio project init --board esp32dev
+   pio project init --board upesy_wroom
    ```
 
 3. **Build and upload**:
@@ -141,12 +141,12 @@ lib_deps =
 The system publishes distance data on the following ROS2 topics:
 
 - **Filtered Topic**: `/ultrasonic_sensor/range`
-  - **Message Type**: `sensor_msgs/Range`
+  - **Message Type**: `sensor_msgs/msg/Range`
   - **Frame ID**: `ultrasonic_filtered`
   - **Frequency**: ~20 Hz
 
 - **Raw Topic**: `/ultrasonic_sensor/range_raw`
-  - **Message Type**: `sensor_msgs/Range`
+  - **Message Type**: `sensor_msgs/msg/Range`
   - **Frame ID**: `ultrasonic_raw`
   - **Frequency**: ~20 Hz
 
@@ -182,15 +182,45 @@ ros2 interface show sensor_msgs/Range
 ### Range Message Structure
 
 ```yaml
-std_msgs/Header header
-  uint32 seq
-  time stamp
-  string frame_id
-uint8 radiation_type       # ULTRASOUND = 0
-float32 field_of_view      # ~0.26 radians (15 degrees)
-float32 min_range          # 0.02 meters (2cm)
-float32 max_range          # 4.0 meters (400cm)
-float32 range              # Measured distance [m]
+# Single range reading from an active ranger that emits energy and reports
+# one range reading that is valid along an arc at the distance measured.
+# This message is  not appropriate for laser scanners. See the LaserScan
+# message if you are working with a laser scanner.
+#
+# This message also can represent a fixed-distance (binary) ranger.  This
+# sensor will have min_range===max_range===distance of detection.
+# These sensors follow REP 117 and will output -Inf if the object is detected
+# and +Inf if the object is outside of the detection range.
+
+std_msgs/Header header # timestamp in the header is the time the ranger
+                             # returned the distance reading
+
+# Radiation type enums
+# If you want a value added to this list, send an email to the ros-users list
+uint8 ULTRASOUND=0
+uint8 INFRARED=1
+
+uint8 radiation_type    # the type of radiation used by the sensor
+                        # (sound, IR, etc) [enum]
+
+float32 field_of_view   # the size of the arc that the distance reading is
+                        # valid for [rad]
+                        # the object causing the range reading may have
+                        # been anywhere within -field_of_view/2 and
+                        # field_of_view/2 at the measured range.
+                        # 0 angle corresponds to the x-axis of the sensor.
+
+float32 min_range       # minimum range value [m]
+float32 max_range       # maximum range value [m]
+                        # Fixed distance rangers require min_range==max_range
+
+float32 range           # range data [m]
+                        # (Note: values < range_min or > range_max should be discarded)
+                        # Fixed distance rangers only output -Inf or +Inf.
+                        # -Inf represents a detection within fixed distance.
+                        # (Detection too close to the sensor to quantify)
+                        # +Inf represents no detection within the fixed distance.
+                        # (Object out of range)
 ```
 
 ## Kalman Filter Implementation
@@ -387,23 +417,6 @@ ros2 topic info /ultrasonic_sensor/range
 # Test with command line
 ros2 topic echo /ultrasonic_sensor/range --once
 
-# Check node status
-ros2 node list
-ros2 node info /ultrasonic_sensor_node
-```
-
-### Project Structure
-
-```
-micro-ros-esp32-ultrasonic-kalman/
-├── src/
-│   └── main.cpp                 # Main application code
-├── platformio.ini              # PlatformIO configuration
-├── README.md                   # This documentation
-└── docs/                       # Additional documentation
-    ├── kalman_filter.md        # Kalman filter theory
-    ├── circuit_design.md       # Hardware design details
-    └── ros2_integration.md     # ROS2 setup guide
 ```
 
 ### Development Workflow
