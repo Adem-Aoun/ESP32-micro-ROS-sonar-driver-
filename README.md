@@ -176,7 +176,7 @@ ros2 topic hz /ultrasonic_sensor/range_raw
 #### Show Topic Information
 ```bash
 ros2 topic info /ultrasonic_sensor/range
-ros2 interface show sensor_msgs/Range
+ros2 interface show sensor_msgs/msg/Range
 ```
 
 ### Range Message Structure
